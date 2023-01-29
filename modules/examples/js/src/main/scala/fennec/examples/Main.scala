@@ -20,6 +20,7 @@ import org.scalajs.dom.window
 
 import java.util.UUID
 import scala.util.Try
+import calico.html.Html
 
 object Main extends IOApp.Simple:
 
@@ -33,7 +34,7 @@ object Main extends IOApp.Simple:
     DefaultLogger.makeIo(Output.fromConsole[IO])
 
   val wsUrl = s"ws://${window.location.host}${window.location.pathname}fennec/${kernel.name}"
-  println(wsUrl)
+
   private val maybeId: IO[Option[UUID]] = IO.delay {
     val str: String = window.localStorage.getItem(kernel.name)
     if str == null then None else Try(UUID.fromString(str)).toOption
@@ -45,39 +46,19 @@ object Main extends IOApp.Simple:
     _     <- IO(window.localStorage.setItem(kernel.name, id.toString))
   yield id
 
-  def app(using Logger[IO]) =
-    for
-      given Dispatcher[IO] <- Dispatcher.sequential[IO]
-      id                   <- Resource.eval(getId)
-      keyboardEvents       <- KeyboardInput.sub[IO]
-      _ <- keyboardEvents
-        .subscribe(maxQueued = 10)
-        .evalTap(event => Logger[IO].debug(s"KEYBOARD EVENT: $event"))
-        .compile
-        .drain
-        .background
-      (outgoing, sessionStates) <- Websocket.topicFor(kernel, wsUrl, id)
-      userStates = sessionStates.map(_.state)
-      _              <- Resource.eval(Logger[IO].info(s"READY"))
-      htmlDivElement <- render(outgoing, userStates.t())
-    yield htmlDivElement
-
-  def render(outgoing: Topic[IO, Event], states: Stream[IO,State]): Resource[IO, HtmlDivElement[IO]] =
-    div(
-      i("Count: "),
-      b(states.map(_.count.toString).holdOptionResource),
-      button(
-        "+",
-        onClick --> (_.as(Event.Increment).through(outgoing.publish)),
-      ),
-      button("-", onClick --> (_.as(Event.Decrement).through(outgoing.publish))),
-    )
-
   override def run: IO[Unit] =
-    for
-      given Logger[IO] <- mkLogger
-      root             <- Document[IO].getElementById("app").map(_.get)
-      _                <- app.renderInto(root).useForever
-    yield ()
+    given Html[IO] = calico.html.io
+    summon[Html[IO]]
+
+    
+    Dispatcher
+      .sequential[IO]
+      .use(implicit dispatcher =>
+        for
+          given Logger[IO] <- mkLogger
+          root             <- Document[IO].getElementById("app").map(_.get)
+          _                <- CounterApp[IO]().resource.renderInto(root).useForever
+        yield (),
+      )
 
 end Main
