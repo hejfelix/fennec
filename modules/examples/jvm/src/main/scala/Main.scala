@@ -1,16 +1,14 @@
+import cats.effect.std.Random
+import cats.effect.{ExitCode, IO, IOApp}
+import com.comcast.ip4s.host
+import fennec.KernelCatsSupport
+import fennec.KernelCatsSupport.given
 import fennec.examples.*
 import fennec.server.http4s.KernelService
-import fennec.{KernelCatsSupport, Log}
-import cats.effect.{ExitCode, IO, IOApp}
-import cats.syntax.all.*
+import org.http4s.ember.server.EmberServerBuilder
 import org.http4s.implicits.*
 import org.http4s.server.Router
 import org.legogroup.woof.{*, given}
-import org.legogroup.woof.slf4j.registerSlf4j
-import KernelCatsSupport.given
-import cats.effect.std.Random
-import com.comcast.ip4s.{Host, ipv4, port}
-import org.http4s.ember.server.EmberServerBuilder
 
 object Main extends IOApp:
   given Printer = ColorPrinter()
@@ -28,7 +26,7 @@ object Main extends IOApp:
       _                <- Logger[IO].info(s"Starting...")
       _ <- EmberServerBuilder
         .default[IO]
-        .withHost(Host.fromString("localhost").get)
+        .withHost(host"127.0.0.1")
         .withHttpWebSocketApp(builder =>
           Router(
             "fennec/counter"  -> counterRoutes(builder),

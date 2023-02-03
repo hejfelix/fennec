@@ -2,7 +2,6 @@ package fennec.examples
 
 import cats.effect.kernel.{Async, Resource, Sync}
 import cats.effect.std.Dispatcher
-import fennec.client.Subscription
 import fs2.concurrent.Topic
 import org.scalajs.dom
 import org.scalajs.dom.document

@@ -2,8 +2,7 @@ package fennec
 
 import java.util.UUID
 
-import cats.Applicative
-import cats.data.{IndexedStateT, StateT}
+import cats.data.StateT
 import cats.syntax.all.*
 import scala.util.Try
 
@@ -61,17 +60,18 @@ object Codec:
     val readBytes: Int => DecoderT[Vector[Byte]] = n =>
       for
         bytes <- apply.get
-        value: DecoderT[Vector[Byte]] =
+        bytess <-
           if bytes.length < n then error("Reached end prematurely") else const(bytes.take(n))
-        bytess <- value
-        _      <- apply.modify(_.drop(n))
+        _ <- apply.modify(_.drop(n))
       yield bytess
 
     val byte: DecoderT[Byte] =
       for
         bytes <- apply.get
-        byte <- bytes.headOption.fold[DecoderT[Byte]](error(s"Reached end prematurely: $bytes"))(b => DecoderT.const(b))
-        _    <- apply.modify(_.drop(1))
+        byte <- bytes.headOption.fold[DecoderT[Byte]](error(s"Reached end prematurely: $bytes"))(
+          b => DecoderT.const(b),
+        )
+        _ <- apply.modify(_.drop(1))
       yield byte
 
     def repeat[T](n: Int)(d: DecoderT[T]): DecoderT[Vector[T]] =

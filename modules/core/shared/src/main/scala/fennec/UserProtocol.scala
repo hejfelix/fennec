@@ -1,6 +1,5 @@
 package fennec
 
-import cats.data.Kleisli
 import cats.effect.kernel.Concurrent
 import cats.syntax.all.*
 import fs2.Stream
@@ -8,7 +7,9 @@ import org.legogroup.woof.{Logger, given}
 import fs2.concurrent.Topic
 import cats.Applicative
 
-class UserProtocol[F[_]: Concurrent: Logger, State, Event, User](val kernel: Kernel[F, State, Event, User]):
+class UserProtocol[F[_]: Concurrent: Logger, State, Event, User](
+    val kernel: Kernel[F, State, Event, User],
+):
 
   type E  = Event
   type M  = Message[State, Event, User]
@@ -24,12 +25,13 @@ class UserProtocol[F[_]: Concurrent: Logger, State, Event, User](val kernel: Ker
       case Message.SharedEvent(origin, event) =>
         for
           id <- s.get.map(_.session.id)
-          _  <- if id != origin then s.updateState(state => kernel.update(state)(event)) else Applicative[F].unit
-          _  <- s.incrementCounter
+          _ <-
+            if id != origin then s.updateState(state => kernel.update(state)(event))
+            else Applicative[F].unit
+          _ <- s.incrementCounter
         yield ()
-      case Message.SessionHandshake(state,id) =>
-        for 
-          _ <- s.setState(state)
+      case Message.SessionHandshake(state, _) =>
+        for _ <- s.setState(state)
         yield ()
       case _ => Applicative[F].unit
 
@@ -40,7 +42,9 @@ class UserProtocol[F[_]: Concurrent: Logger, State, Event, User](val kernel: Ker
         newEvents <- kernel
           .effect(st.session)(st.state)(event)
           .map(
-            _.zipWithIndex.map((event, index) => Message.EventMessage(index + st.sessionCounter, event)),
+            _.zipWithIndex.map((event, index) =>
+              Message.EventMessage(index + st.sessionCounter, event),
+            ),
           )
           .onError(e => Logger[F].error(e.toString))
           .recoverWith(_ => List.empty.pure)

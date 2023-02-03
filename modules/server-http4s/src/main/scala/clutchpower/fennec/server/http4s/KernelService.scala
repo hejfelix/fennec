@@ -1,30 +1,27 @@
 package fennec.server.http4s
 
+import cats.effect.kernel.Clock
 import cats.effect.mtl.*
-import cats.effect.std.{Console, Queue}
-import cats.effect.{Concurrent, Ref, Spawn}
-import cats.mtl.{Stateful, Tell}
-import cats.syntax.all.*
+import cats.effect.std.{Console, UUIDGen}
 import cats.effect.syntax.all.*
-import cats.{Functor, Monad}
-import fennec.Message.SharedEvent
+import cats.effect.{Concurrent, Ref, Spawn}
+import cats.mtl.Stateful
+import cats.syntax.all.*
 import fennec.server.ServerProtocol
-import fennec.{Kernel, Message, UserProtocol}
+import fennec.{Direction, Kernel, Message, UserProtocol}
+import fs2.concurrent.Topic
 import fs2.{Pipe, Stream}
 import org.http4s.dsl.Http4sDsl
-import org.http4s.server.websocket.WebSocketBuilder
+import org.http4s.server.websocket.WebSocketBuilder2
 import org.http4s.websocket.WebSocketFrame
 import org.http4s.{HttpRoutes, Response}
-import scodec.bits.ByteVector
+import org.legogroup.woof.Logger.withLogContext
 import org.legogroup.woof.{Logger, given}
-import Logger.withLogContext
-import cats.effect.std.UUIDGen
-import fennec.Direction
-import fs2.concurrent.Topic
-import cats.effect.kernel.Clock
-import cats.Applicative
-import org.http4s.server.websocket.WebSocketBuilder2
+import scodec.bits.ByteVector
 
+import scala.annotation.nowarn
+
+@nowarn("msg=unused implicit parameter")
 class KernelService[F[_]: Clock: Console: Logger: Spawn: UUIDGen: Concurrent, State, Event, User](
     kernel: Kernel[F, State, Event, User],
 ):
@@ -61,8 +58,7 @@ class KernelService[F[_]: Clock: Console: Logger: Spawn: UUIDGen: Concurrent, St
       val dirstr  = if dir == Direction.Outgoing then ">>>" else "<<<"
       val decoded = kernel.messageCodec.decode.run(m.data.toArray.toVector)
       val mm      = decoded
-      if decoded.isRight then Logger[F].info(s"$dirstr ${mm.map(_.toString).getOrElse("")}  ")
-      else Applicative[F].unit,
+      Logger[F].info(s"$dirstr ${mm.map(_.toString).getOrElse("")}  ").whenA(decoded.isRight),
     )
 
   private def response(
@@ -79,7 +75,6 @@ class KernelService[F[_]: Clock: Console: Logger: Spawn: UUIDGen: Concurrent, St
         kernel,
         userProtocol,
         m => emit(m, Direction.Outgoing),
-        m => emit(m, Direction.Incoming),
       )
     val outgoing = topic.subscribe(10).through(logAll).collect { case (m, Direction.Outgoing) => m }
     val incoming = topic.subscribe(10).through(logAll)
@@ -107,7 +102,7 @@ class KernelService[F[_]: Clock: Console: Logger: Spawn: UUIDGen: Concurrent, St
       case (WebSocketFrame.Binary(data, _), dir) =>
         val message: Either[Throwable, (Vector[Byte], M)] =
           kernel.messageCodec.decode.run(data.toArray.toVector)
-        val (remaining, decoded: kernel.M) =
+        val (_, decoded: kernel.M) =
           message.getOrElse(sys.error(s"Failed to parse: $data  $message"))
         Stream.emit((decoded, dir))
       case (WebSocketFrame.Close(status), _) =>

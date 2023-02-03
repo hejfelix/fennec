@@ -3,13 +3,13 @@ package fennec.examples
 import fennec.*
 
 import java.util.UUID
+import scala.annotation.nowarn
 // import cats.syntax.all.*
 import io.circe.{KeyDecoder, KeyEncoder}
 
 import scala.util.Try
 // import fennec.CodecDerived.given
 // import fennec.CodecDefaults.given
-import fennec.examples.FormsKernel.{Event, State}
 import fennec.circe.CirceSupport.given
 import io.circe.generic.auto.given
 import monocle.syntax.all.*
@@ -27,6 +27,7 @@ object TodoKernel:
   case class Todo(title: String, message: String, id: Id)
   case class State(todos: List[Todo])
 
+  @nowarn("msg=unused explicit parameter")
   enum Event:
     case CreateTodo
     case NewTodo(id: Id)
@@ -35,6 +36,7 @@ object TodoKernel:
 
   val initState = State(List(Todo("title", "message", Id(UUID.randomUUID))))
 
+  @nowarn("msg=unused explicit parameter")
   val update: Update[State, Event] = state =>
     case Event.CreateTodo       => state
     case Event.NewTodo(id)      => state.copy(todos = state.todos.prepended(Todo("", "", id)))
@@ -49,6 +51,7 @@ object FennecleKernel:
 
   val wordSize = 6
 
+  @nowarn("msg=unused explicit parameter")
   enum Difficulty:
     case Hard
     case Medium
@@ -57,6 +60,7 @@ object FennecleKernel:
   case class Game(wordToGuess: String, currentGuess: List[Char], guesses: List[String])
   case class State(frequencyDict: Map[String, Int], games: List[(UUID, Game)], difficulty: Difficulty)
 
+  @nowarn("msg=unused explicit parameter")
   enum Event:
     case ModifyGuess(gameId: UUID, index: Int, char: Char)
     case StartNewGame
@@ -151,7 +155,6 @@ object LifeKernel:
       neighbours(index).count(cells.contains)
 
     def nextState(index: (Int, Int)): Boolean =
-      val (x, y)  = index
       val alive   = cells.contains(index)
       val liveNbs = liveNeighbours(index)
 
@@ -177,6 +180,7 @@ object LifeKernel:
   object State:
     def empty = State(Grid(Set.empty), 0)
 
+  @nowarn("msg=unused explicit parameter")
   enum Event:
     case Step
     case NoOp
@@ -185,6 +189,7 @@ object LifeKernel:
     case Clear
     case Initialize
 
+  @nowarn("msg=unused explicit parameter")
   val update: Update[State, Event] = state =>
     case Event.Initialize          => state
     case Event.Clear               => state.copy(grid = Grid(Set.empty))
@@ -206,6 +211,7 @@ object CounterKernel:
 
   case class State(count: Int)
 
+  @nowarn("msg=unused explicit parameter")
   enum Event:
     case Increment
     case Decrement

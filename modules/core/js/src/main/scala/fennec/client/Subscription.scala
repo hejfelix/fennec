@@ -1,16 +1,9 @@
 package fennec.client
 
+import cats.syntax.all.*
+import cats.{Functor, FunctorFilter}
 import fs2.Stream
 import fs2.concurrent.Topic
-import cats.Functor
-import cats.TraverseFilter
-import cats.Traverse
-import cats.Applicative
-import cats.syntax.all.*
-import cats.Id
-import cats.Eval
-import cats.FunctorFilter
-import cats.effect.Concurrent
 
 case class Subscription[F[_], A](t: () => Stream[F, A]) {
   def collect[B](f: PartialFunction[A, B]) = Subscription(t.map(_.collect(f)))

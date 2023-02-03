@@ -3,7 +3,7 @@ package fennec.examples
 import cats.effect.kernel.Sync
 import org.scalajs.dom.window
 
-trait LocalStorage[F[_]: Sync]:
+trait LocalStorage[F[_]]:
   def getItem(key: String): F[Option[String]]
   def setItem(key: String, value: String): F[Unit]
 end LocalStorage

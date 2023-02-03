@@ -6,7 +6,7 @@ import cats.Applicative
 
 def newTodo[F[_]: UUIDGen: Applicative]: UpdateEffect[F, State, Event, Unit] =
   _ =>
-    state =>
+    _ =>
       case Event.CreateTodo =>
         UUIDGen[F].randomUUID
           .map(Id(_))

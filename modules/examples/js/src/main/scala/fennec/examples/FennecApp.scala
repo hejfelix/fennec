@@ -1,27 +1,22 @@
 package fennec.examples
 
-import fennec.Kernel
-import org.scalajs.dom.window
-import java.util.UUID
-import cats.effect.kernel.Sync
-import scala.util.Try
-import cats.Monad
+import cats.effect.kernel.{Async, Resource}
+import cats.effect.std.{Dispatcher, UUIDGen}
 import cats.syntax.all.*
-import cats.effect.std.UUIDGen
-import fs2.concurrent.Topic
+import fennec.Kernel
+import fennec.client.{KernelSocket, Websocket}
 import fs2.Stream
+import fs2.concurrent.Topic
 import fs2.dom.HtmlElement
-import cats.effect.kernel.Resource
-import cats.Functor
-import fennec.client.Websocket
-import cats.effect.std.Dispatcher
-import cats.effect.kernel.Clock
-import org.legogroup.woof.Logger
-import cats.effect.kernel.Async
-import calico.html.Html
-import fennec.client.KernelSocket
+import org.legogroup.woof.{Logger, given}
+import org.scalajs.dom.window
 
-trait FennecApp[F[_]: Html: Async: Logger: Dispatcher: UUIDGen: LocalStorage, State, Event](
+import java.util.UUID
+import scala.annotation.nowarn
+import scala.util.Try
+
+@nowarn("msg=unused implicit parameter")
+trait FennecApp[F[_]: Async: Logger: Dispatcher: UUIDGen: LocalStorage, State, Event](
     kernel: Kernel[F, State, Event, Unit],
 ):
 
@@ -37,9 +32,11 @@ trait FennecApp[F[_]: Html: Async: Logger: Dispatcher: UUIDGen: LocalStorage, St
     _     <- LocalStorage[F].setItem(kernel.name, id.toString())
   yield id
 
+  @nowarn("msg=unused pattern variable")
   def resource: Resource[F, HtmlElement[F]] =
     for
       id                        <- Resource.eval(getId)
+      _                         <- Resource.eval(Logger[F].info(s"Found $id, using it..."))
       channel                   <- Websocket[F].connectAsChannel(wsUrl)
       (outgoing, sessionStates) <- KernelSocket.topicFor(channel, kernel, id)
       userStates = sessionStates.map(_.state)

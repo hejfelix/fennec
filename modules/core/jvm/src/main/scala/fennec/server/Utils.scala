@@ -1,11 +1,10 @@
 package fennec.server
 
-import cats.Applicative
 import fs2.{Pull, Stream}
 
 object Utils:
 
-  extension [F[_]: Applicative, A](s: Stream[F, A])
+  extension [F[_], A](s: Stream[F, A])
     def scanReset[B](identity: B, f: (B, A) => F[B])(resetIdentity: PartialFunction[A, F[B]]): Stream[F, B] =
       def loop(acc: B, s: Stream[F, A]): Pull[F, B, Unit] =
         s.pull.uncons1.flatMap {

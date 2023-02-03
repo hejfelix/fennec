@@ -3,27 +3,23 @@ package fennec.server
 import fennec.*
 
 import java.util.UUID
-
-import cats.data.Kleisli
-import cats.effect.mtl.*
-import cats.effect.{Concurrent, Ref, Sync}
+import cats.effect.Concurrent
 import cats.effect.std.UUIDGen
-import cats.implicits.{catsSyntaxApplicativeId, toTraverseOps}
 import cats.mtl.syntax.all.*
-import cats.mtl.{Ask, Stateful, Tell}
+import cats.mtl.Stateful
 import cats.syntax.all.*
-import cats.{Applicative, Functor, Monad}
-import fs2.{Pipe, Pull, Pure, Stream}
-import scodec.bits.ByteVector
-import org.legogroup.woof.{given, *}
-import Logger.withLogContext
+import cats.Applicative
+import fs2.{Pipe, Stream}
+import org.legogroup.woof.{*, given}
 import cats.effect.kernel.Clock
 
+import scala.annotation.nowarn
+
+@nowarn("msg=unused import")
 class ServerProtocol[F[_]: Concurrent: Clock: Logger: UUIDGen, State, Event, User](
     val kernel: Kernel[F, State, Event, User],
     userProtocol: UserProtocol[F, State, Event, User],
     emit: Message[State, Event, User] => F[Unit], // interleave this message in incoming stream
-    reply: Message[State, Event, User] => F[Unit],// send upstream only
 ):
 
   type K        = Kernel[F, State, Event, User]
@@ -60,8 +56,7 @@ class ServerProtocol[F[_]: Concurrent: Clock: Logger: UUIDGen, State, Event, Use
   ): Stream[F, FSession] =
     s.evalMap((m, dir) =>
       for
-        _    <- handleSessionRequests(m, session)
-        sesh <- summon[Session[F, State, User]].get
+        _ <- handleSessionRequests(m, session)
         _ <- userProtocol.handleF(emit)(m) <* (if dir == Direction.Incoming then sendAck(m)
                                                else Applicative[F].unit)
         st <- summon[Session[F, State, User]].get

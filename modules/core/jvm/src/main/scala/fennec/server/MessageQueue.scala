@@ -1,9 +1,7 @@
 package fennec.server
 
-import fennec.Codec
-
 import fs2.Stream
 
-abstract class MessageQueue[F[_], T: Codec]:
+abstract class MessageQueue[F[_], T]:
   val publish: T => F[Unit]
   val receive: Stream[F, T]

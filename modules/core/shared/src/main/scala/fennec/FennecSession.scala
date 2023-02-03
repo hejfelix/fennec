@@ -1,13 +1,14 @@
 package fennec
 
-import java.time.Instant
-import cats.mtl.Stateful
 import cats.effect.kernel.{Clock, Concurrent, Ref}
 import cats.FlatMap
 import cats.syntax.all.*
 import cats.effect.std.UUIDGen
+
 import java.util.UUID
 import cats.Functor
+
+import scala.annotation.nowarn
 
 case class FennecSession[+State, +User](
     session: KernelSession[User],
@@ -40,6 +41,7 @@ object Session:
         _           <- st.update(_.copy(lastUserEventEpochMillis = currentTime.toMillis))
       yield ()
 
+  @nowarn("msg=unused implicit parameter")
   def make[F[_]: UUIDGen: Concurrent: Clock: FlatMap, State, User](
       state: State,
       maybeKernelSession: Option[KernelSession[User]],

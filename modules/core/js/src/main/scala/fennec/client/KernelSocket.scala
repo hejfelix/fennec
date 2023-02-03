@@ -1,30 +1,23 @@
 package fennec.client
 
-import cats.effect.std.Dispatcher
-import cats.effect.std.UUIDGen
-import org.legogroup.woof.Logger
-import cats.effect.Concurrent
-import fennec.Kernel
-import java.util.UUID
-import org.scalajs.dom
-import cats.effect.kernel.Resource
-import fs2.concurrent.Topic
-import fennec.FennecSession
-import fennec.UserProtocol
-import cats.effect.kernel.Async
-import cats.effect.kernel.Sync
-import scala.scalajs.js.typedarray.{ArrayBuffer, Int8Array, byteArray2Int8Array}
-import org.scalajs.dom.MessageEvent
-import Websocket.WebsocketChannel
-import fs2.Stream
-import cats.syntax.all.*
-import fennec.Direction
-import fennec.Message
 import cats.Applicative
-import fennec.Session
-import cats.Monad
+import cats.effect.Concurrent
+import cats.effect.kernel.{Async, Resource, Sync}
+import cats.effect.std.UUIDGen
+import cats.syntax.all.*
+import fennec.*
+import fennec.client.Websocket.WebsocketChannel
+import fs2.Stream
+import fs2.concurrent.Topic
+import org.legogroup.woof.Logger
+import org.scalajs.dom
+import org.scalajs.dom.MessageEvent
 
-object KernelSocket {
+import java.util.UUID
+import scala.annotation.nowarn
+import scala.scalajs.js.typedarray.{ArrayBuffer, Int8Array, byteArray2Int8Array}
+
+object KernelSocket:
 
   def toM[F[_]: Async](kernel: Kernel[F, ?, ?, ?])(me: dom.MessageEvent): F[kernel.M] =
     val blob = me.data.asInstanceOf[org.scalajs.dom.Blob]
@@ -36,7 +29,7 @@ object KernelSocket {
             val uint8Array = new Int8Array(x)
             val decoded: Either[Throwable, (Vector[Byte], kernel.M)] =
               kernel.messageCodec.decode.run(uint8Array.toVector)
-            val (remaining, message: kernel.M) =
+            val (_, message: kernel.M) =
               decoded.fold(throwable => throw throwable, identity)
             message
           }
@@ -56,18 +49,18 @@ object KernelSocket {
       event,
     )
 
+  @nowarn("msg=unused pattern variable") //
   def topicFor[F[_]: Async: UUIDGen: Logger, S, E, U](
       channel: WebsocketChannel[F],
       kernel: Kernel[F, S, E, U],
       id: UUID,
   ): Resource[F, (Topic[F, kernel.E], Subscription[F, FennecSession[kernel.S, kernel.U]])] =
-    val userProtocol = UserProtocol(kernel)
     for
       eventTopic             <- Resource.eval(Topic[F, kernel.E])
-      eventStream            <- eventTopic.subscribeAwait(10)
+      eventStream            <- eventTopic.subscribeAwait(maxQueued = 10)
       outgoingTopicM         <- Resource.eval(Topic[F, kernel.M])
-      outgoingKernelMessages <- outgoingTopicM.subscribeAwait(10)
-      incomingStream         <- channel.in.subscribeAwait(10)
+      outgoingKernelMessages <- outgoingTopicM.subscribeAwait(maxQueued = 10)
+      incomingStream         <- channel.in.subscribeAwait(maxQueued = 10)
       incomingKernelMessages: Stream[F, kernel.M] = incomingStream.evalMap(toM(kernel))
       allMessages = Stream(
         outgoingKernelMessages.product(Direction.Outgoing.pure),
@@ -93,6 +86,7 @@ object KernelSocket {
     yield (eventTopic, Subscription(sessionStatesTopic))
   end topicFor
 
+  @nowarn("msg=unused pattern variable")
   def handleSessionStates[F[_]: Concurrent: Logger, S, U](
       kernel: Kernel[F, S, ?, U],
   )(
@@ -102,16 +96,15 @@ object KernelSocket {
       channel: WebsocketChannel[F],
   ): F[FennecSession[S, U]] =
     val userProtocol = UserProtocol(kernel)
-    m match {
+    m match
       case (m @ Message.EventMessage(-1, _), Direction.Outgoing) =>
         for
           counter <- session.incrementCounter
           mUpdated = m.copy(sessionCounter = counter)
           _                      <- channel.out.publish1(fromM(kernel)(mUpdated))
           given Session[F, S, U] <- session.pure
-          asdf = summon[Session[F, S, U]]
-          r     <- userProtocol.handleF(publishM)(mUpdated)
-          state <- session.get
+          _                      <- userProtocol.handleF(publishM)(mUpdated)
+          state                  <- session.get
         yield state
       case (m, Direction.Outgoing) =>
         for
@@ -123,6 +116,5 @@ object KernelSocket {
       case (m, Direction.Incoming) =>
         given Session[F, S, U] = session
         userProtocol.handleF(publishM)(m) *> session.get
-    }
 
-}
+end KernelSocket

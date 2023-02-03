@@ -1,6 +1,5 @@
 package fennec
 
-import scala.util.{Failure, Try}
 import cats.syntax.all.given
 
 object CodecDerived:
@@ -25,7 +24,9 @@ object CodecDerived:
   def productOf[T](m: Mirror.ProductOf[T], instances: List[Codec[?]]): Codec[T] =
     new Codec[T]:
       override def encode(t: T): Vector[Byte] =
-        instances.zip(iterator(t)).foldMap((instance, param) => instance.asInstanceOf[Codec[Any]].encode(param))
+        instances
+          .zip(iterator(t))
+          .foldMap((instance, param) => instance.asInstanceOf[Codec[Any]].encode(param))
       override def decode: DecoderT[T] =
         instances
           .map(_.asInstanceOf[Codec[Any]])

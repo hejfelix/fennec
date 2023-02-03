@@ -1,40 +1,18 @@
 package fennec.client
 
-import fennec.*
-
-import java.util.UUID
-import cats.Applicative
-import cats.effect.{Async, Concurrent}
-import cats.effect.kernel.{Resource, Sync}
+import cats.effect.Async
+import cats.effect.kernel.*
 import cats.effect.std.Dispatcher
-import cats.syntax.all.*
-import org.scalajs.dom
-
-import scala.concurrent.{Future, Promise}
-import scala.scalajs.js.typedarray.{ArrayBuffer, Int8Array, byteArray2Int8Array}
-import scala.scalajs.js.{defined, typedarray}
-import scala.util.{Success, Try}
-import org.legogroup.woof.{*, given}
 import cats.effect.syntax.all.*
-import Websocket.*
+import cats.syntax.all.*
+import fennec.*
+import fennec.client.Websocket.*
 import fs2.concurrent.Topic
-import org.scalajs.dom.MessageEvent
-import fs2.Stream
+import org.scalajs.dom
+import org.scalajs.dom.{MessageEvent, WebSocket}
 
-import scala.concurrent.duration.*
-import cats.effect.kernel.GenTemporal
-
-import scala.concurrent.Await
-import org.scalajs.dom.WebSocket
-import cats.Functor
-import cats.effect.std.UUIDGen
-
-import javax.script.SimpleBindings
-import cats.effect.kernel.Fiber
-import cats.effect.kernel.Clock
-
-import scala.scalajs.js
-import cats.Monad
+import scala.annotation.nowarn
+import scala.scalajs.js.typedarray.ArrayBuffer
 
 trait Websocket[F[_]]:
   def connect(webSocketUrl: String): Resource[F, dom.WebSocket]
@@ -65,7 +43,7 @@ object Websocket:
       Resource.make(create(webSocketUrl))(socket =>
         Sync[F].delay(if socket.readyState != 3 /*closed*/ then socket.close()),
       )
-    override def connectAsChannel(webSocketUrl: String): Resource[F, WebsocketChannel[F]] = 
+    override def connectAsChannel(webSocketUrl: String): Resource[F, WebsocketChannel[F]] =
       for
         given Dispatcher[F] <- Dispatcher.sequential
         socket              <- connect(webSocketUrl)
@@ -80,21 +58,26 @@ object Websocket:
       incomingTopic <- Resource.make(Topic[F, MessageEvent])(_.closed)
       _ <- Resource.make(
         Sync[F].delay(websocket.onmessage =
-          m => dispatcher.unsafeRunAndForget(incomingTopic.publish1(m)),
+          m =>
+            dispatcher.unsafeRunAndForget {
+              incomingTopic.publish1(m)
+            },
         ),
       )(_ => Sync[F].delay(websocket.onmessage = null))
     yield incomingTopic
 
   /** A topic which immediately consumes its messages by sending them through a websocket
     */
-  def outgoing[F[_]: Async](
-      websocket: WebSocket,
-  ): Resource[F, Topic[F, MessageEvent]] =
+  @nowarn("msg=unused pattern variable")
+  def outgoing[F[_]: Async](websocket: WebSocket): Resource[F, Topic[F, MessageEvent]] =
     for
       outgoingTopic  <- Resource.make(Topic[F, MessageEvent])(_.closed)
       outgoingStream <- outgoingTopic.subscribeAwait(10)
+      outgoingWithSend = outgoingStream.evalMap { m =>
+        Sync[F].delay(websocket.send(m.data.asInstanceOf[ArrayBuffer]))
+      }
       _ <- Resource.make {
-        outgoingStream.compile.drain.start
+        outgoingWithSend.compile.drain.start
       }(_.cancel)
     yield outgoingTopic
 

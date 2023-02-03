@@ -1,7 +1,5 @@
 package fennec
 
-import java.util.UUID
-
 import cats.*
 import cats.syntax.all.*
 
@@ -87,7 +85,7 @@ object Kernel:
       sharedQueueFor = _ => None,
       name = name,
       initState = init,
-      authenticate = proof => ().asRight,
+      authenticate = _ => ().asRight,
     )
 
   case class SharedQueue(name: String)

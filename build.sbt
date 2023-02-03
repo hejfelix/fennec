@@ -1,5 +1,5 @@
 ThisBuild / organization := "fennec"
-ThisBuild / scalaVersion := "3.2.1"
+ThisBuild / scalaVersion := "3.3.0-RC2"
 ThisBuild / scalacOptions ++= Seq("-source", "future")
 ThisBuild / versionScheme := Some("early-semver")
 
@@ -20,7 +20,16 @@ val commonSettings = Seq(
   scalacOptions --= Seq(
     "-encoding",
     "UTF-8"
-  ) // we need this for IntelliJ to work w. TPolecat plugin,
+  ), // we need this for IntelliJ to work w. TPolecat plugin,
+  scalacOptions ++= Seq(
+    "-Wunused:imports",
+    "-Wunused:locals",
+    "-Wunused:privates",
+    "-Wunused:params",
+    "-Wunused:unsafe-warn-patvars",
+    "-Wunused:linted",
+    "-Wunused:implicits",
+  )
 )
 
 val testLibs = Seq(
@@ -53,7 +62,7 @@ lazy val core = crossProject(JSPlatform, JVMPlatform)
   .jsSettings(
     scalaJSLinkerConfig ~= (_.withModuleKind(ModuleKind.CommonJSModule)),
     libraryDependencies ++= Seq(
-      "org.scala-js" %%% "scalajs-dom"               % V.scalajsDom,
+      "org.scala-js"  %%% "scalajs-dom"               % V.scalajsDom,
       ("org.scala-js" %%% "scalajs-java-securerandom" % "1.0.0").cross(CrossVersion.for3Use2_13)
     )
   )
