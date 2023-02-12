@@ -4,6 +4,7 @@ ThisBuild / scalacOptions ++= Seq("-source", "future")
 ThisBuild / versionScheme := Some("early-semver")
 
 val V = new {
+  val calico     = "0.2.0-M4"
   val cats       = "2.9.0"
   val catsEffect = "3.4.5"
   val catsMtl    = "1.3.0"
@@ -28,7 +29,7 @@ val commonSettings = Seq(
     "-Wunused:params",
     "-Wunused:unsafe-warn-patvars",
     "-Wunused:linted",
-    "-Wunused:implicits",
+    "-Wunused:implicits"
   )
 )
 
@@ -126,7 +127,7 @@ lazy val examples = crossProject(JSPlatform, JVMPlatform)
         )) // configure Scala.js to emit a JavaScript module instead of a top-level script
       )
       .settings(
-        libraryDependencies += "com.armanbilge" %%% "calico" % "0.2.0-M1"
+        libraryDependencies += "com.armanbilge" %%% "calico" % V.calico
       )
   )
 

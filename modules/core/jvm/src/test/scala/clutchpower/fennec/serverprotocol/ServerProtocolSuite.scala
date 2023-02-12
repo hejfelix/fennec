@@ -1,35 +1,34 @@
 package fennec.server
 
-import cats.effect.kernel.Ref
+import cats.effect.kernel.{Clock, Ref}
 import cats.effect.mtl.*
 import cats.effect.std.UUIDGen
-import cats.effect.{IO, Ref}
-import cats.mtl.{Stateful, Tell}
+import cats.effect.IO
+import cats.mtl.Stateful
 import cats.syntax.all.*
-import cats.syntax.group
-import cats.{Functor, Id, ~>}
-import fennec.Codec.DecoderT
+import cats.{Applicative, Id, ~>}
 import fennec.*
+import fennec.Codec.DecoderT
 import fennec.Message.*
 import fennec.server.Utils.*
-import fennec.server.ServerProtocol
 import fs2.Stream
 import org.legogroup.woof.*
+import weaver.*
 
 import java.util.UUID
-import weaver.*
-import cats.effect.kernel.Clock
+import scala.annotation.nowarn
 import scala.concurrent.duration.FiniteDuration
-import cats.Applicative
 
 object ServerProtocolSuite extends SimpleIOSuite:
 
   case class State(count: Int)
 
-  given Printer    = ColorPrinter()
-  given Filter     = Filter.nothing
-  given Logger[IO] = DefaultLogger.makeIo(Output.fromConsole).unsafeRunSync()(cats.effect.unsafe.IORuntime.global)
+  given Printer = ColorPrinter()
+  given Filter  = Filter.nothing
+  given Logger[IO] =
+    DefaultLogger.makeIo(Output.fromConsole).unsafeRunSync()(cats.effect.unsafe.IORuntime.global)
 
+  @nowarn // compiler bug AFAIK
   enum Event:
     case Increment
     case Decrement
@@ -54,6 +53,7 @@ object ServerProtocolSuite extends SimpleIOSuite:
   end given
 
   given Codec[Unit] with
+    @nowarn
     def encode(u: Unit): Vector[Byte] = Vector.empty
     def decode: DecoderT[Unit]        = DecoderT.const(())
 
@@ -69,8 +69,8 @@ object ServerProtocolSuite extends SimpleIOSuite:
     Kernel
       .init[State, Event]("counter", State(0))
       .withUpdate(update)
-      .withEffect(session =>
-        s =>
+      .withEffect(_ =>
+        _ =>
           {
             case Event.Decrement =>
               List(
@@ -83,7 +83,7 @@ object ServerProtocolSuite extends SimpleIOSuite:
           },
       )
 
-  def ignore[T](t: T): IO[Unit] = IO.unit
+  def ignore[T]: T => IO[Unit] = _ => IO.unit
 
   test("scanReset") {
 
@@ -120,7 +120,7 @@ object ServerProtocolSuite extends SimpleIOSuite:
       def realTime: IO[FiniteDuration]             = monotonic
       def applicative: Applicative[cats.effect.IO] = Applicative[IO]
 
-    val protocol = new ServerProtocol(kernel, userProtocol, ignore, ignore)
+    val protocol = new ServerProtocol(kernel, userProtocol, ignore)
 
     val expected: List[FennecSession[State, kernel.U]] = List(
       FennecSession(session, State(1), 1, 0),
@@ -145,10 +145,8 @@ object ServerProtocolSuite extends SimpleIOSuite:
       def realTime: IO[FiniteDuration]             = monotonic
       def applicative: Applicative[cats.effect.IO] = Applicative[IO]
 
-    val messages: Stream[IO, kernel.M] = Stream.emits(Seq()).covary[IO]
 
     val session       = KernelSession.AnonymousSession(UUID.randomUUID())
-    val fennecSession = FennecSession(session, kernel.initState, 5, 0)
     given UUIDGen[IO] with
       def randomUUID = IO.pure(session.id)
 
@@ -161,13 +159,14 @@ object ServerProtocolSuite extends SimpleIOSuite:
     val generatedMessages = (0 to 2).toList.map(i => Message.EventMessage(5 + i, Event.Increment))
 
     for
-      given Stateful[IO, ServerProtocol.StateMap[State, User]] <- Ref[IO]
-        .of(ServerProtocol.StateMap.empty[State, User])
-        .stateInstance
+//      given Stateful[IO, ServerProtocol.StateMap[State, User]] <- Ref[IO]
+//        .of(ServerProtocol.StateMap.empty[State, User])
+//        .stateInstance
       given Session[IO, State, User] <- Session.make[IO, State, User](kernel.initState, None)
       _ <- List
         .fill(4)(-1)
-        .traverse_(_ => summon[Session[IO, State, User]].incrementCounter) // fast forward session to start at 5
+        .traverse_(_ => summon[Session[IO, State, User]].incrementCounter,
+        ) // fast forward session to start at 5
       _ <- userProtocol.handleF(emit)(EventMessage(5, Event.Decrement))
     yield expect(emitted.reverse == generatedMessages)
   }

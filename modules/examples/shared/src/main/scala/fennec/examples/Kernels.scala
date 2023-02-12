@@ -34,7 +34,7 @@ object TodoKernel:
     case DeleteTodo(id: Id)
     case UpdateTodo(todo: Todo)
 
-  val initState = State(List(Todo("title", "message", Id(UUID.randomUUID))))
+  val initState = State(List(Todo("", "", Id(UUID.randomUUID))))
 
   @nowarn("msg=unused explicit parameter")
   val update: Update[State, Event] = state =>

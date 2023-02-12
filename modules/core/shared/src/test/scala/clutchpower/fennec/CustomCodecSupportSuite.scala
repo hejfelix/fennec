@@ -1,16 +1,12 @@
 package fennec
 
 import cats.implicits.*
-import fennec.{Codec, CustomCodecSupport}
+import weaver.FunSuite
 
 import java.util.UUID
-import CustomCodecSupport.*
-import CustomCodecSupportSuite.*
-import Codec.DecoderT
+import CustomCodecSupportSuite.{MyTestEvent, MyTestState, User}
 
-import weaver.{given, *}
-import cats.kernel.Eq
-import java.nio.charset.StandardCharsets
+import scala.annotation.nowarn
 
 trait CodecTest:
   self: FunSuite =>
@@ -46,6 +42,7 @@ trait CodecTest:
   }
 end CodecTest
 
+@nowarn // compiler bug (CodecDefaults.given)
 object CustomCodecSupportSuite extends FunSuite with CodecTest:
   case class MyTestState(id: Int)
   case class MyTestEvent(char: Char)

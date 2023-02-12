@@ -1,7 +1,6 @@
 package fennec.examples
 
 import weaver.*
-import java.util.UUID
 
 object KernelsSuite extends FunSuite:
 
