@@ -41,7 +41,10 @@ object Websocket:
       }
     def connect(webSocketUrl: String): Resource[F, dom.WebSocket] =
       Resource.make(create(webSocketUrl))(socket =>
-        Sync[F].delay(if socket.readyState != 3 /*closed*/ then socket.close()),
+        Sync[F].delay {
+          println(s"Closing websocket $webSocketUrl")
+          if socket.readyState != 3 /*closed*/ then socket.close()
+        },
       )
     override def connectAsChannel(webSocketUrl: String): Resource[F, WebsocketChannel[F]] =
       for
@@ -55,7 +58,9 @@ object Websocket:
       websocket: WebSocket,
   )(using dispatcher: Dispatcher[F]): Resource[F, Topic[F, MessageEvent]] =
     for
-      incomingTopic <- Resource.make(Topic[F, MessageEvent])(_.closed)
+      incomingTopic <- Resource.make(Topic[F, MessageEvent])(socket =>
+        socket.close.flatMap(result => Sync[F].delay(println(result))),
+      )
       _ <- Resource.make(
         Sync[F].delay(websocket.onmessage =
           m =>
@@ -71,7 +76,7 @@ object Websocket:
   @nowarn("msg=unused pattern variable")
   def outgoing[F[_]: Async](websocket: WebSocket): Resource[F, Topic[F, MessageEvent]] =
     for
-      outgoingTopic  <- Resource.make(Topic[F, MessageEvent])(_.closed)
+      outgoingTopic  <- Resource.make(Topic[F, MessageEvent])(_.close.void)
       outgoingStream <- outgoingTopic.subscribeAwait(10)
       outgoingWithSend = outgoingStream.evalMap { m =>
         Sync[F].delay(websocket.send(m.data.asInstanceOf[ArrayBuffer]))

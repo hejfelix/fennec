@@ -17,7 +17,7 @@ import scala.util.Try
 
 @nowarn("msg=unused implicit parameter")
 trait FennecApp[F[_]: Async: Logger: Dispatcher: UUIDGen: LocalStorage, State, Event](
-    kernel: Kernel[F, State, Event, Unit],
+    val kernel: Kernel[F, State, Event, Unit],
 ):
 
   private val wsUrl: String =
@@ -32,16 +32,17 @@ trait FennecApp[F[_]: Async: Logger: Dispatcher: UUIDGen: LocalStorage, State, E
     _     <- LocalStorage[F].setItem(kernel.name, id.toString())
   yield id
 
+
   @nowarn("msg=unused pattern variable")
   def resource: Resource[F, HtmlElement[F]] =
-    for
+    (for
       id                        <- Resource.eval(getId)
-      _                         <- Resource.eval(Logger[F].info(s"Found $id, using it..."))
+      _                         <- Resource.eval(Logger[F].info(s"Found $id, using it...$wsUrl"))
       channel                   <- Websocket[F].connectAsChannel(wsUrl)
       (outgoing, sessionStates) <- KernelSocket.topicFor(channel, kernel, id)
       userStates = sessionStates.map(_.state)
       html <- render(outgoing, userStates.t())
-    yield html
+    yield html).onFinalize(Logger[F].info(s"GOODBYE ${kernel.name}"))
 
   def render(
       outgoing: Topic[F, Event],
