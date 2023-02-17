@@ -117,7 +117,7 @@ lazy val examples = crossProject(JSPlatform, JVMPlatform)
     core,
     circeSupport
   )
-  .jvmConfigure(_.dependsOn(serverHttp4s))
+  .jvmConfigure(_.dependsOn(serverHttp4s).enablePlugins(JavaAppPackaging))
   .jsConfigure(
     _.dependsOn(core.js)
       .settings(
@@ -130,6 +130,8 @@ lazy val examples = crossProject(JSPlatform, JVMPlatform)
         libraryDependencies += "com.armanbilge" %%% "calico" % V.calico
       )
   )
+
+addCommandAlias("stage","examplesJVM/stage")
 
 addCommandAlias("watchJs", s"~; examplesJVM/reStart; examplesJS/fastOptJS;")
 addCommandAlias(

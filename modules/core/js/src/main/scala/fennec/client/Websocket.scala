@@ -12,6 +12,7 @@ import org.scalajs.dom
 import org.scalajs.dom.{MessageEvent, WebSocket}
 
 import scala.annotation.nowarn
+import scala.scalajs.js
 import scala.scalajs.js.typedarray.ArrayBuffer
 
 trait Websocket[F[_]]:
@@ -33,7 +34,9 @@ object Websocket:
 
           websocket.onopen = _ => complete(websocket.asRight)
           websocket.onerror =
-            error => complete(Exception(s"websocket error:${error} $webSocketUrl").asLeft)
+            error => {
+              complete(Exception(s"websocket error:$error $webSocketUrl").asLeft)
+            }
           websocket.onclose = reason => complete(Exception(s"websocket closed: $reason").asLeft)
 
           Some(Sync[F].delay(websocket.close()))

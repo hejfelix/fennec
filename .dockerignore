@@ -1,0 +1,18 @@
+# flyctl launch added from .gitignore
+**/*.save
+**/.DS_Store
+**/.bloop
+**/.idea
+**/.metals
+**/.vscode
+**/target
+.bsp
+**/node_modules
+**/node_modules
+**/project/metals.sbt
+**/project/project/metals.sbt
+**/project/project/project/metals.sbt
+**/public
+**/target
+**/yarn.lock
+fly.toml

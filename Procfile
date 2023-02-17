@@ -1,0 +1,1 @@
+web: modules/examples/jvm/target/universal/stage/bin/examples

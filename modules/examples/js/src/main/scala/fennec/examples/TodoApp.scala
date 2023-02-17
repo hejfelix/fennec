@@ -22,7 +22,7 @@ class TodoApp[F[_]: Html: Async: Dispatcher: UUIDGen: Logger: LocalStorage]
       states: Stream[F, State],
   ): Resource[F, HtmlElement[F]] = div(
     button("new", onClick.as(Event.CreateTodo) --> outgoing.publish),
-    br(""),
+    br(()),
     states
       .map(_.todos)
       .holdResource(List.empty)
@@ -45,7 +45,7 @@ class TodoApp[F[_]: Html: Async: Dispatcher: UUIDGen: Logger: LocalStorage]
             .through(outgoing.publish)),
         ),
       ),
-      br(""),
+      br(()),
       i(
         "Message: ",
         input.withSelf(ref =>

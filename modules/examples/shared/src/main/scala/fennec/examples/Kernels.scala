@@ -4,14 +4,13 @@ import fennec.*
 
 import java.util.UUID
 import scala.annotation.nowarn
-// import cats.syntax.all.*
 import io.circe.{KeyDecoder, KeyEncoder}
 
 import scala.util.Try
-// import fennec.CodecDerived.given
-// import fennec.CodecDefaults.given
-import fennec.circe.CirceSupport.given
-import io.circe.generic.auto.given
+ import fennec.CodecDerived.given
+ import fennec.CodecDefaults.given
+//import fennec.circe.CirceSupport.given
+//import io.circe.generic.auto.given
 import monocle.syntax.all.*
 
 given KeyEncoder[FormId] = _ match

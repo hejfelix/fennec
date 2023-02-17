@@ -5,7 +5,6 @@ import fennec.*
 import java.util.UUID
 import cats.effect.Concurrent
 import cats.effect.std.UUIDGen
-import cats.mtl.syntax.all.*
 import cats.mtl.Stateful
 import cats.syntax.all.*
 import cats.Applicative

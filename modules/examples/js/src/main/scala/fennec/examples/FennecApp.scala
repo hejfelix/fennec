@@ -9,7 +9,6 @@ import fs2.Stream
 import fs2.concurrent.Topic
 import fs2.dom.HtmlElement
 import org.legogroup.woof.{Logger, given}
-import org.scalajs.dom.window
 
 import java.util.UUID
 import scala.annotation.nowarn
@@ -21,7 +20,7 @@ trait FennecApp[F[_]: Async: Logger: Dispatcher: UUIDGen: LocalStorage, State, E
 ):
 
   private val wsUrl: String =
-    s"ws://${window.location.host}${window.location.pathname}fennec/${kernel.name}"
+    s"wss://fennec.fly.dev/fennec/${kernel.name}"
 
   private def maybeId: F[Option[UUID]] =
     LocalStorage[F].getItem(kernel.name).map(_.flatMap(str => Try(UUID.fromString(str)).toOption))

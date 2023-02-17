@@ -52,11 +52,7 @@ object Main extends IOApp.Simple:
     div(
       navigation(currentApp),
       children[String](name => appByName(name)) <-- currentApp.changes.map(List(_)),
-//      children[String](name => div("THIS IS THE CURRENT: ", name)) <-- currentApp.changes.map(
-//        List(_),
-//      ),
-//      currentApp.changes.map(name => apps.find(_.kernel.name == name).map(_.resource)),
-    )
+  )
 
   def appByName(
       name: String,

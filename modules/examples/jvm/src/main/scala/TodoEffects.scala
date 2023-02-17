@@ -9,6 +9,6 @@ def newTodo[F[_]: UUIDGen: Applicative]: UpdateEffect[F, State, Event, Unit] =
     _ =>
       case Event.CreateTodo =>
         UUIDGen[F].randomUUID
-          .map(Id)
+          .map(Id.apply)
           .map(id => List(Event.NewTodo(id), Event.UpdateTodo(Todo("", "", id))))
       case _ => List.empty.pure[F]
