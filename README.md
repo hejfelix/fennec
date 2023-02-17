@@ -2,6 +2,7 @@
 <p align="center">
   <img src="fennec-fox-silhouette-outline-original.svg" alt="fennec fox outline, svg"/>
 </p>
+
 > Client-server Functional Reactive Programming (FRP) library
 
 ## State of the project
