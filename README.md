@@ -4,11 +4,11 @@
 
 ## State of the project
 
-<p style="color:#ff4f4f;background-color:#e8e8e8"><b>
-This project is currently just an investigation. I have yet to write any small or large applications with <i>Fennec</i>,
-but of course I hope to do so in the future.
-If and when it matures, I will start making some releases. For now, it's open sourced as inspiration.
-</b></p>
+```diff
+! This project is currently just an investigation. I have yet to write any small or large applications with Fennec
+! but of course I hope to do so in the future.
+! If and when it matures, I will start making some releases. For now, it's open sourced as inspiration.
+```
 ## Inspiration
 
 To give you a quick idea of what inspiration this library draws upon:
@@ -34,7 +34,7 @@ HTML).
 | **VM**               | JVM/.js engine         | Beam                      |
 | **Message passing**  | Bring your own         | Erlang Actors, VM support |
 | **Over the wire**    | Message passing        | HTML                      |
-| **Client side code** | ✅ (cross compile)      | ❌ (framework provided)    |
+| **Client side code** | Cross compiled         | Framework provided        |
 | **Process model**    | Fibers (green threads) | Erlang Actors             |
 
 While `Phoenix Liveview` relies on a piece of static JavaScript on the client that can render HTML from the server,
