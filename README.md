@@ -113,7 +113,7 @@ end CounterKernel
 There's basically 2 types of messages between the server and the client:
 
 * Handshake to start session
-    * This includes the full serialized state from last time we saw this uder
+    * This includes the full serialized state from last time we saw this user
 * User events (`Increment`, `Decrement`)
 
 With the current implementation and my home-cooked binary protocol, we get these numbers:
