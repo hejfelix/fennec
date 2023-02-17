@@ -36,7 +36,7 @@ HTML).
 |----------------------|------------------------|---------------------------|
 | **VM**               | JVM/.js engine         | Beam                      |
 | **Message passing**  | Bring your own         | Erlang Actors, VM support |
-| **Over the wire**    | Message passing        | HTML                      |
+| **Over the wire**    | Messages (binary)      | HTML                      |
 | **Client side code** | Cross compiled         | Framework provided        |
 | **Process model**    | Fibers (green threads) | Erlang Actors             |
 
