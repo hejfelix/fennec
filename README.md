@@ -12,6 +12,7 @@
 ! but of course I hope to do so in the future.
 ! If and when it matures, I will start making some releases. For now, it's open sourced as inspiration.
 ```
+
 ## Inspiration
 
 To give you a quick idea of what inspiration this library draws upon:
@@ -126,3 +127,7 @@ With the current implementation and my home-cooked binary protocol, we get these
 For this app, the numbers are static since neither the state, nor the events are dynamic. In the future, I hope to 
 have some more interesting numbers and possibly some benchmarks.
 
+# Try it out 
+
+You can try out the examples at [https://hejfelix.github.io/fennec/](https://hejfelix.github.io/fennec/).
+Make sure to open dev console and check out the websocket communication while you're trying it out.
