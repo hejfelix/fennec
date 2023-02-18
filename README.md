@@ -1,7 +1,8 @@
-# Fennec
 <p align="center">
-  <img src="fennec-fox-silhouette-outline-original.svg" alt="fennec fox outline, svg"/>
+  <img width="400" src="cute-cartoon-fox-colour-remix-silhouette-ac61da-original.svg" alt="fennec fox outline, svg"/>
 </p>
+
+# Fennec
 
 > Client-server Functional Reactive Programming (FRP) library
 
