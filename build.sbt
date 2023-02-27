@@ -1,5 +1,5 @@
 ThisBuild / organization := "fennec"
-ThisBuild / scalaVersion := "3.3.0-RC2"
+ThisBuild / scalaVersion := "3.3.0-RC3"
 ThisBuild / scalacOptions ++= Seq("-source", "future")
 ThisBuild / versionScheme := Some("early-semver")
 
@@ -115,7 +115,8 @@ lazy val examples = crossProject(JSPlatform, JVMPlatform)
   )
   .dependsOn(
     core,
-    circeSupport
+    circeSupport,
+    examplesMacro
   )
   .jvmConfigure(_.dependsOn(serverHttp4s).enablePlugins(JavaAppPackaging))
   .jsConfigure(
@@ -131,10 +132,13 @@ lazy val examples = crossProject(JSPlatform, JVMPlatform)
       )
   )
 
+lazy val examplesMacro = crossProject(JSPlatform, JVMPlatform)
+  .crossType(CrossType.Pure)
+  .in(file("modules/examples-macro"))
+
 addCommandAlias("stage","examplesJVM/stage")
 
-addCommandAlias("watchJs", s"~; examplesJVM/reStart; examplesJS/fastOptJS;")
 addCommandAlias(
   "dev",
-  s"; examplesJVM/reStart; watchJs"
+  s"~; examplesJVM/reStart; examplesJS/fastOptJS;"
 )

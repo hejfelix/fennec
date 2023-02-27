@@ -6,13 +6,22 @@
     <meta charset="UTF-8">
     <title>Fennec: Examples</title>
 
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css">
+    <script src="https://cdn.tailwindcss.com"></script>
 
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/default.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"></script>
+    <!-- and it's easy to individually load additional languages -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/languages/scala.min.js"></script>
+    <script>hljs.highlightAll();</script>
 </head>
 <body>
 
-<div id="app"/>
+    <div id="app"/>
 
-<script type="text/javascript" src="js/target/scala-3.3.0-RC2/examples-fastopt.js"></script>
+    <script type="text/javascript" src="js/target/scala-3.3.0-RC3/examples-fastopt.js"></script>
+
+
+
+
 </body>
 </html>

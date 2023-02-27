@@ -13,6 +13,7 @@ import org.http4s.server.websocket.WebSocketBuilder2
 import org.legogroup.woof.{*, given}
 import cats.syntax.all.*
 import org.http4s.server.middleware.{CORS, CORSPolicy}
+import scala.concurrent.duration.*
 
 object Main extends IOApp:
   given Printer = ColorPrinter()
@@ -41,6 +42,7 @@ object Main extends IOApp:
         .default[IO]
         .withHost(host"0.0.0.0")
         .withPort(port"8080")
+        .withShutdownTimeout(0.seconds)
         .withHttpWebSocketApp(webSocketBuilder =>
           corsConfig(Router(
             routePairs.map((path,routeBuilder) => path -> routeBuilder(webSocketBuilder))*

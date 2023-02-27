@@ -6,9 +6,7 @@ export default defineConfig({
     host: "0.0.0.0",
     proxy: {
       "^/fennec/.+": {
-        target: "wss://fennec.fly.dev",
-        secure: false,
-        changeOrigin: true,
+        target: "ws://127.0.0.1:8080",
         ws: true,
       }
     },
