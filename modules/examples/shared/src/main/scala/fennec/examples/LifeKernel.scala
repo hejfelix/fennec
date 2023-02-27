@@ -53,7 +53,7 @@ object LifeKernel:
 
   case class State(grid: Grid, updateFrequency: Int)
   object State:
-    def empty = State(Grid(Set.empty), 0)
+    def empty = State(Grid(Set.empty), 1000)
 
   @nowarn("msg=unused explicit parameter")
   enum Event:

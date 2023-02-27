@@ -54,6 +54,7 @@ object KernelSocket:
       channel: WebsocketChannel[F],
       kernel: Kernel[F, S, E, U],
       id: UUID,
+      upgrade: PartialFunction[kernel.M, kernel.E] = PartialFunction.empty,
   ): Resource[F, (Topic[F, kernel.E], Subscription[F, FennecSession[kernel.S, kernel.U]])] =
     for
       eventTopic             <- Resource.eval(Topic[F, kernel.E])
@@ -73,6 +74,11 @@ object KernelSocket:
               org.scalajs.dom.window.localStorage.setItem(kernel.name, id.toString),
             )
           case _ => Applicative[F].unit
+        }
+        .flatMap { (message, direction) =>
+          val value: Stream[F, kernel.M] =
+            Stream.fromOption(upgrade.lift.apply(message).map(Message.EventMessage(-1, _)))
+          (Stream(message) ++ value).map(m => (m, direction))
         }
       session <- Resource.eval(Session.make[F, kernel.S, kernel.U](kernel.initState, None))
       sessionStates: Stream[F, FennecSession[kernel.S, kernel.U]] = allMessages.evalMap((m, dir) =>

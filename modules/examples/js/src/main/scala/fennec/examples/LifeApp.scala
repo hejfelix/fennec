@@ -5,9 +5,9 @@ import cats.effect.Ref
 import cats.effect.kernel.{Async, Resource, Sync}
 import cats.effect.std.{Dispatcher, UUIDGen}
 import fennec.examples.LifeKernel.{Event, State, kernel}
-import org.legogroup.woof.Logger
+import org.legogroup.woof.{Logger}
 import fennec.KernelCatsSupport.given
-import fennec.UpdateEffect
+import fennec.{Message, UpdateEffect}
 import fs2.concurrent.Topic
 import fs2.dom.{HtmlCanvasElement, HtmlElement}
 import org.scalajs.dom
@@ -33,7 +33,8 @@ class LifeApp[F[_]: Async: Dispatcher: UUIDGen: Logger: LocalStorage](
 
   import html.{*, given}
 
-  case class Vec2D(x: Double, y: Double)
+  override def upgrade: PartialFunction[LifeApp.this.kernel.M, LifeApp.this.kernel.E] =
+    case _: Message.SessionHandshake[?, ?, ?] => Event.Initialize
 
   def lifeCanvas(outgoing: Topic[F, Event]): Resource[F, HtmlCanvasElement[F]] =
     canvasTag.withSelf((self: HtmlCanvasElement[F]) =>

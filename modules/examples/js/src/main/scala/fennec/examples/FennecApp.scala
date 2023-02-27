@@ -21,6 +21,8 @@ trait FennecApp[F[_]: Async: Logger: Dispatcher: UUIDGen: LocalStorage, State, E
     selfSource: Map[String, String],
 )(using html: Html[F]):
 
+  def upgrade: PartialFunction[kernel.M,kernel.E] = PartialFunction.empty
+
   private val wsUrl: String =
     if window.location.host.equalsIgnoreCase("hejfelix.github.io") then
       s"wss://fennec.fly.dev/fennec/${kernel.name}"
@@ -41,7 +43,7 @@ trait FennecApp[F[_]: Async: Logger: Dispatcher: UUIDGen: LocalStorage, State, E
       id                        <- Resource.eval(getId)
       _                         <- Resource.eval(Logger[F].info(s"Found $id, using it...$wsUrl"))
       channel                   <- Websocket[F].connectAsChannel(wsUrl)
-      (outgoing, sessionStates) <- KernelSocket.topicFor(channel, kernel, id)
+      (outgoing, sessionStates) <- KernelSocket.topicFor(channel, kernel, id, upgrade)
       userStates = sessionStates.map(_.state)
       html <- renderWithSourceCode(outgoing, userStates.t())
       _ = println(html)
