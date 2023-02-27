@@ -2,26 +2,23 @@ package fennec.examples.macros
 
 object SourceFileMacro {
   import scala.quoted.*
-  inline def getContent[A]: String = ${ getContentImpl[A] }
+  inline def getContent[A]: (String, String) = ${ getContentImpl[A] }
 
-  private def getContentImpl[A: Type](using Quotes): Expr[String] =
+  private def getContentImpl[A: Type](using Quotes): Expr[(String, String)] =
     import quotes.reflect.*
     val typeSymbol = TypeRepr
       .of[A]
       .typeSymbol
-    val position = typeSymbol
-      .pos
+    val position = typeSymbol.pos
       .getOrElse(
         report.errorAndAbort("no symbol position"),
       )
-    val file = position
-      .sourceFile
+    val file = position.sourceFile
 
-    val str = file
-      .content
+    val str = file.content
       .getOrElse(
         report.errorAndAbort("no source-file content"),
       )
-    Expr(str)
+    Expr((typeSymbol.fullName, str))
 
 }

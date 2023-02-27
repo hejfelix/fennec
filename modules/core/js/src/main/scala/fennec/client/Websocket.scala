@@ -45,7 +45,6 @@ object Websocket:
     def connect(webSocketUrl: String): Resource[F, dom.WebSocket] =
       Resource.make(create(webSocketUrl))(socket =>
         Sync[F].delay {
-          println(s"Closing websocket $webSocketUrl")
           if socket.readyState != 3 /*closed*/ then socket.close()
         },
       )
