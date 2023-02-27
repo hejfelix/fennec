@@ -71,7 +71,7 @@ jobs:
       - name: Build Scala.Js
         run: |
           sbt examplesJS/fastOptJS
-          cp modules/examples/js/target/scala-3.3.0-RC2/examples-fastopt.js github-pages/
+          cp modules/examples/js/target/scala-3.3.0-RC3/examples-fastopt.js github-pages/
       - name: Deploy github pages
         uses: peaceiris/actions-gh-pages@v3
         with:
