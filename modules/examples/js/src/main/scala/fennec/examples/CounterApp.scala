@@ -18,7 +18,7 @@ class CounterApp[F[_]: Html: Async: Dispatcher: UUIDGen: Logger: LocalStorage](s
   import html.{*, given}
 
   private val buttonClass =
-    cls := "bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-full"
+    cls := "m-2 transition bg-blue-500 hover:bg-green-500 text-white font-bold py-2 px-4 rounded-full hover:scale-150"
 
   override def render(
       outgoing: Topic[F, Event],
