@@ -5,11 +5,12 @@ import cats.effect.std.{Dispatcher, UUIDGen}
 import cats.syntax.all.*
 import fennec.Kernel
 import fennec.client.{KernelSocket, Websocket}
-import fs2.Stream
+import fs2.{Pipe, Stream}
 import fs2.concurrent.Topic
-import fs2.dom.HtmlElement
+import fs2.dom.{HtmlElement, MouseEvent}
 import org.legogroup.woof.{Logger, given}
 import calico.html.Html
+
 import java.util.UUID
 import scala.annotation.nowarn
 import scala.util.Try
@@ -54,18 +55,19 @@ trait FennecApp[F[_]: Async: Logger: Dispatcher: UUIDGen: LocalStorage, State, E
       states: Stream[F, State],
   ): Resource[F, HtmlElement[F]]
 
+  private val highlightAll: Pipe[F,MouseEvent[F],Nothing] = _.foreach(_ => Async[F].delay(scalajs.js.Dynamic.global.hljs.highlightAll()))
+
   def sourceCodeDetails: List[Resource[F, HtmlElement[F]]] =
     import html.{*, given}
     selfSource.toList.map:
       (key,codeString) =>
         detailsTag(
+          cls := "p-2 rounded-lg bg-gray-700 m-2 text-slate-100",
           summaryTag(
-            "Src: ", b(key),
-            onClick --> (_.foreach(_ =>
-              Async[F].delay(scalajs.js.Dynamic.global.hljs.highlightAll()),
-            )),
+            b(key),
+            onClick --> highlightAll,
           ),
-          pre(code(cls := "language-scala", codeString)),
+          pre(code(cls := "language-scala  rounded-lg", codeString)),
         )
 
 
