@@ -156,7 +156,7 @@ object ServerProtocolSuite extends SimpleIOSuite:
     val emit         = (m: kernel.M) => IO.delay { emitted = m :: emitted }
     val userProtocol = new UserProtocol(kernel)
 
-    val generatedMessages = (0 to 2).toList.map(i => Message.EventMessage(5 + i, Event.Increment))
+    val generatedMessages = (0 to 2).toList.map(i => Message.EventMessage(4 + i, Event.Increment))
 
     for
 //      given Stateful[IO, ServerProtocol.StateMap[State, User]] <- Ref[IO]
