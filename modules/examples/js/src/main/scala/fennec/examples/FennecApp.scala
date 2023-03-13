@@ -47,7 +47,6 @@ trait FennecApp[F[_]: Async: Logger: Dispatcher: UUIDGen: LocalStorage, State, E
       (outgoing, sessionStates) <- KernelSocket.topicFor(channel, kernel, id, upgrade)
       userStates = sessionStates.map(_.state)
       html <- renderWithSourceCode(outgoing, userStates.t())
-      _ = println(html)
     yield html).onFinalize(Logger[F].info(s"GOODBYE ${kernel.name}"))
 
   def render(

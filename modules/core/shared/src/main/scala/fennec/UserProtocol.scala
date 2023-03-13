@@ -63,8 +63,8 @@ class UserProtocol[F[_]: Concurrent: Logger, State, Event, User](
   def step(using Session[F, State, User]): M => F[List[M]] =
     m =>
       for
-        _         <- update(m)
         newEvents <- effectM(m)
+        _         <- update(m)
       yield newEvents
 
   def handleMessage(using s: Session[F, State, User]): M => Stream[F, List[M]] = m =>

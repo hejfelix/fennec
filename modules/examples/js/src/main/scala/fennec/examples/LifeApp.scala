@@ -5,7 +5,7 @@ import cats.effect.Ref
 import cats.effect.kernel.{Async, Resource, Sync}
 import cats.effect.std.{Dispatcher, UUIDGen}
 import fennec.examples.LifeKernel.{Event, State, kernel}
-import org.legogroup.woof.{Logger}
+import org.legogroup.woof.Logger
 import fennec.KernelCatsSupport.given
 import fennec.{Message, UpdateEffect}
 import fs2.concurrent.Topic
@@ -67,13 +67,22 @@ class LifeApp[F[_]: Async: Dispatcher: UUIDGen: Logger: LocalStorage](
     yield Event.Step,
   )
 
+  private val buttonClass =
+    cls := "m-2 transition bg-blue-500 hover:bg-green-500 text-white font-bold py-2 px-4 rounded-full hover:scale-150"
+
   override def render(
       outgoing: Topic[F, Event],
       states: fs2.Stream[F, State],
   ): Resource[F, HtmlElement[F]] =
     for
-      _    <- events.through(outgoing.publish).compile.drain.background
-      html <- p(cls := "text-4xl", "LIFE APP", lifeCanvas(outgoing))
+      _ <- events.through(outgoing.publish).compile.drain.background
+      html <- p(
+        cls := "text-4xl",
+        "LIFE APP",
+        br(()),
+        button("Clear", buttonClass, onClick.as(Event.Clear) --> outgoing.publish),
+        lifeCanvas(outgoing),
+      )
     yield html
 
 end LifeApp
@@ -87,13 +96,12 @@ object LifeApp:
     val canvas = dom.document.querySelector(s"#$canvasId").asInstanceOf[Canvas]
     canvas.getContext("2d").asInstanceOf[dom.CanvasRenderingContext2D]
   }
+
   def clear[F[_]: Sync](x: Int, y: Int)(using ctx: CanvasRenderingContext2D): F[Unit] =
     Sync[F].delay(ctx.clearRect(x * squareWidth, y * squareWidth, squareWidth, squareWidth))
 
   def fill[F[_]: Sync](x: Int, y: Int)(using ctx: CanvasRenderingContext2D): F[Unit] =
-    Sync[F].delay(
-      ctx.fillRect(x * squareWidth, y * squareWidth, squareWidth, squareWidth),
-    )
+    Sync[F].delay(ctx.fillRect(x * squareWidth, y * squareWidth, squareWidth, squareWidth))
 
   opaque type Frequency = FiniteDuration
   object Frequency:
