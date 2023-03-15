@@ -69,12 +69,12 @@ trait FennecApp[F[_]: Async: Logger: Dispatcher: UUIDGen: LocalStorage, State, E
           pre(code(cls := "language-scala  rounded-lg", codeString)),
         )
 
-
+  @nowarn("msg=unused import")
   def renderWithSourceCode(
       outgoing: Topic[F, Event],
       states: Stream[F, State],
   ): Resource[F, HtmlElement[F]] =
-    import html.{*, given}
+    import html.{*,given}
     div(
       cls := "m-8",
       sourceCodeDetails,

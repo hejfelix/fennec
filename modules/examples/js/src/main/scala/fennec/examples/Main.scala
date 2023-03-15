@@ -12,6 +12,8 @@ import fs2.*
 import fs2.concurrent.SignallingRef
 import fs2.dom.*
 import org.legogroup.woof.*
+
+import scala.annotation.nowarn
 import scala.concurrent.duration.*
 
 object Main extends IOApp.Simple:
@@ -24,6 +26,7 @@ object Main extends IOApp.Simple:
     given Filter  = Filter.everything
     DefaultLogger.makeIo(Output.fromConsole[IO])
 
+  @nowarn
   def apps(
       frequency: Ref[IO, Frequency],
   )(using Dispatcher[IO], Html[IO], Logger[IO]): List[FennecApp[IO, ?, ?]] =
@@ -40,9 +43,12 @@ object Main extends IOApp.Simple:
           SourceFileMacro.getContent[fennec.examples.TodoKernel.type],
         ),
       ),
-      LifeApp[IO](
-        frequency,
-        Map(SourceFileMacro.getContent[LifeApp[?]], SourceFileMacro.getContent[LifeKernel.type]),
+//      LifeApp[IO](
+//        frequency,
+//        Map(SourceFileMacro.getContent[LifeApp[?]], SourceFileMacro.getContent[LifeKernel.type]),
+//      ),
+      LifeAppDivs[IO](
+        Map(SourceFileMacro.getContent[LifeAppDivs[?]], SourceFileMacro.getContent[LifeKernel.type]),
       ),
     )
 

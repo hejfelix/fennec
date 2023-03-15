@@ -9,6 +9,8 @@ import fennec.CodecDefaults.given
 object LifeKernel:
   import cats.syntax.all.*
 
+  val bounds = 0 until 20
+
   case class Grid(cells: Set[(Int, Int)]):
 
     def isAlive(x: Int, y: Int): Boolean = cells.contains((x, y))
@@ -33,12 +35,13 @@ object LifeKernel:
       val alive   = cells.contains(index)
       val liveNbs = liveNeighbours(index)
 
+      val withinBounds    = bounds.contains(index._1) && bounds.contains(index._2)
       val willBecomeAlive = !alive && liveNbs == 3
       val willStayAlive   = alive && (liveNbs == 2 || liveNbs == 3)
       val willDie         = alive && !willStayAlive
 
       if willDie then false
-      else if willBecomeAlive then true
+      else if willBecomeAlive && withinBounds then true
       else cells(index)
     end nextState
 

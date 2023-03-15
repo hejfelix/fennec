@@ -4,7 +4,7 @@ ThisBuild / scalacOptions ++= Seq("-source", "future")
 ThisBuild / versionScheme := Some("early-semver")
 
 val V = new {
-  val calico     = "0.2.0-M4"
+  val calico     = "0.2.0-RC2"
   val cats       = "2.9.0"
   val catsEffect = "3.4.5"
   val catsMtl    = "1.3.0"
