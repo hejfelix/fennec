@@ -17,14 +17,16 @@ import scala.concurrent.duration.*
 
 object Main extends IOApp:
   given Printer = ColorPrinter()
-  given Filter  = Filter.everything
 
-  def kernels(using Random[IO]): List[Kernel[IO, ?,?,?]] = List(
+  given Filter = Filter.everything
+
+  def kernels(using Random[IO]): List[Kernel[IO, ?, ?, ?]] = List(
     FennecleKernel.kernel.withEffect(fennecleEffects[IO]),
     CounterKernel.kernel.covary[IO],
     LifeKernel.kernel.covary[IO],
     FormsKernel.kernel.covary[IO],
-    TodoKernel.kernel.withEffect(newTodo[IO])
+    TodoKernel.kernel.withEffect(newTodo[IO]),
+    PingKernel.kernel.withEffect(pingEffect[IO])
   )
 
   def routes(using Random[IO], Logger[IO]): IO[List[(String, WebSocketBuilder2[IO] => HttpRoutes[IO])]] = kernels.traverse(kernel => KernelService(kernel).route.fproductLeft(_ => s"fennec/${kernel.name}"))
@@ -36,7 +38,7 @@ object Main extends IOApp:
     for
       given Logger[IO] <- DefaultLogger.makeIo(Output.fromConsole)
       given Random[IO] <- Random.scalaUtilRandom[IO]
-      _                <- Logger[IO].info(s"Starting...")
+      _ <- Logger[IO].info(s"Starting...")
       routePairs <- routes
       server <- EmberServerBuilder
         .default[IO]
@@ -45,7 +47,7 @@ object Main extends IOApp:
         .withShutdownTimeout(0.seconds)
         .withHttpWebSocketApp(webSocketBuilder =>
           corsConfig(Router(
-            routePairs.map((path,routeBuilder) => path -> routeBuilder(webSocketBuilder))*
+            routePairs.map((path, routeBuilder) => path -> routeBuilder(webSocketBuilder)) *
           ).orNotFound)
         )
         .build.pure[IO]
@@ -53,7 +55,7 @@ object Main extends IOApp:
         server =>
           for
             _ <- Logger[IO].info(s"Server is ready:")
-            _ <- routePairs.traverse( (path,_) =>Logger[IO].info(s"http:/${server.address}/$path"))
+            _ <- routePairs.traverse((path, _) => Logger[IO].info(s"http:/${server.address}/$path"))
             _ <- IO.never
           yield ()
     yield ExitCode.Success

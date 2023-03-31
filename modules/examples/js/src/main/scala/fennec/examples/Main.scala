@@ -19,17 +19,20 @@ import scala.concurrent.duration.*
 object Main extends IOApp.Simple:
 
   given Html[IO] = calico.html.io
+
   import calico.html.io.{*, given}
 
   val mkLogger =
     given Printer = NoColorPrinter()
-    given Filter  = Filter.everything
+
+    given Filter = Filter.everything
+
     DefaultLogger.makeIo(Output.fromConsole[IO])
 
   @nowarn
   def apps(
-      frequency: Ref[IO, Frequency],
-  )(using Dispatcher[IO], Html[IO], Logger[IO]): List[FennecApp[IO, ?, ?]] =
+            frequency: Ref[IO, Frequency],
+          )(using Dispatcher[IO], Html[IO], Logger[IO]): List[FennecApp[IO, ?, ?]] =
     List(
       CounterApp[IO](
         Map(
@@ -43,18 +46,21 @@ object Main extends IOApp.Simple:
           SourceFileMacro.getContent[fennec.examples.TodoKernel.type],
         ),
       ),
-//      LifeApp[IO](
-//        frequency,
-//        Map(SourceFileMacro.getContent[LifeApp[?]], SourceFileMacro.getContent[LifeKernel.type]),
-//      ),
+      //      LifeApp[IO](
+      //        frequency,
+      //        Map(SourceFileMacro.getContent[LifeApp[?]], SourceFileMacro.getContent[LifeKernel.type]),
+      //      ),
       LifeAppDivs[IO](
         Map(SourceFileMacro.getContent[LifeAppDivs[?]], SourceFileMacro.getContent[LifeKernel.type]),
       ),
+      PingApp[IO](
+        Map(SourceFileMacro.getContent[PingApp[?]], SourceFileMacro.getContent[PingKernel.type])
+      )
     )
 
   def currentApp(
-      frequency: Ref[IO, Frequency],
-  )(using Dispatcher[IO], Html[IO], Logger[IO]): IO[SignallingRef[IO, String]] =
+                  frequency: Ref[IO, Frequency],
+                )(using Dispatcher[IO], Html[IO], Logger[IO]): IO[SignallingRef[IO, String]] =
     SignallingRef[IO].of(
       apps(frequency).map(_.kernel.name).headOption.orEmpty,
     )
@@ -65,9 +71,9 @@ object Main extends IOApp.Simple:
       .use(implicit dispatcher =>
         for
           given Logger[IO] <- mkLogger
-          frequency        <- Ref[IO].of(LifeApp.Frequency(1.seconds))
-          currentAppRef    <- currentApp(frequency)
-          root             <- Window[IO].document.getElementById("app").map(_.get)
+          frequency <- Ref[IO].of(LifeApp.Frequency(1.seconds))
+          currentAppRef <- currentApp(frequency)
+          root <- Window[IO].document.getElementById("app").map(_.get)
           _ <- exampleApp(currentAppRef, frequency)
             .onFinalize(IO.println("BYE"))
             .renderInto(root)
@@ -76,8 +82,8 @@ object Main extends IOApp.Simple:
       )
 
   def exampleApp(using Dispatcher[IO], Html[IO], Logger[IO])(
-      currentApp: SignallingRef[IO, String],
-      frequency: Ref[IO, Frequency],
+    currentApp: SignallingRef[IO, String],
+    frequency: Ref[IO, Frequency],
   ): Resource[IO, HtmlDivElement[IO]] =
     div(
       navigation(currentApp, frequency),
@@ -85,14 +91,14 @@ object Main extends IOApp.Simple:
     )
 
   def appByName(frequency: Ref[IO, Frequency])(
-      name: String,
+    name: String,
   )(using Dispatcher[IO], Html[IO], Logger[IO]): Resource[IO, HtmlElement[IO]] =
     apps(frequency).find(_.kernel.name == name).get.resource
 
   def navigation(
-      currentApp: SignallingRef[IO, String],
-      frequency: Ref[IO, Frequency],
-  )(using Dispatcher[IO], Html[IO], Logger[IO]): Resource[IO, HtmlElement[IO]] =
+                  currentApp: SignallingRef[IO, String],
+                  frequency: Ref[IO, Frequency],
+                )(using Dispatcher[IO], Html[IO], Logger[IO]): Resource[IO, HtmlElement[IO]] =
     val selectedStyle =
       "inline-block p-4 text-blue-600 bg-gray-100 rounded-t-lg active dark:bg-gray-800 dark:text-blue-500"
     val notSelectedStyle =
