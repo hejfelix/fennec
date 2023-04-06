@@ -12,7 +12,7 @@ val V = new {
   val fs2        = "3.5.0"
   val http4s     = "0.23.18"
   val scalajsDom = "2.3.0"
-  val woof       = "0.4.7"
+  val woof       = "0.6.0"
   val monocle    = "3.1.0"
   val weaver     = "0.8.1"
 }

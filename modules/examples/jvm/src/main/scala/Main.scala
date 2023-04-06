@@ -18,7 +18,7 @@ import scala.concurrent.duration.*
 object Main extends IOApp:
   given Printer = ColorPrinter()
 
-  given Filter = Filter.everything
+  given Filter = Filter.exactLevel(LogLevel.Info)
 
   def kernels(using Random[IO]): List[Kernel[IO, ?, ?, ?]] = List(
     FennecleKernel.kernel.withEffect(fennecleEffects[IO]),

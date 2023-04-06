@@ -58,7 +58,7 @@ class KernelService[F[_]: Clock: Console: Logger: Spawn: UUIDGen: Concurrent, St
       val dirstr  = if dir == Direction.Outgoing then ">>>" else "<<<"
       val decoded = kernel.messageCodec.decode.run(m.data.toArray.toVector)
       val mm      = decoded
-      Logger[F].info(s"$dirstr ${mm.map(_.toString).getOrElse("")}  ").whenA(decoded.isRight),
+      Logger[F].debug(s"$dirstr ${mm.map(_.toString).getOrElse("")}  ").whenA(decoded.isRight),
     )
 
   private def response(
