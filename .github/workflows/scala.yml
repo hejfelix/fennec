@@ -70,8 +70,8 @@ jobs:
           cache: 'sbt'
       - name: Build Scala.Js
         run: |
-          sbt examplesJS/fastOptJS
-          cp modules/examples/js/target/scala-3.3.0-RC3/examples-fastopt.js github-pages/
+          sbt examplesJS/fullOptJS
+          cp modules/examples/js/target/scala-3.3.0-RC3/examples-opt.js github-pages/
       - name: Deploy github pages
         uses: peaceiris/actions-gh-pages@v3
         with:
